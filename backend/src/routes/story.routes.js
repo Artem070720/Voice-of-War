@@ -4,6 +4,7 @@ const {
     getStories,
     getStoryById,
     getMyStories,
+    incrementStoryView,
     getMyStoryById,
     createStory,
     updateStory,
@@ -23,6 +24,7 @@ router.get('/my/list', authMiddleware, getMyStories)
 router.get('/my/:id', authMiddleware, getMyStoryById)
 
 router.get('/:id', getStoryById)
+router.post('/:id/view', incrementStoryView)
 
 router.post('/', authMiddleware, uploadStoryFiles, createStory)
 router.post('/:id/report', authMiddleware, createStoryReport)

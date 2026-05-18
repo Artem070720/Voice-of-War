@@ -100,6 +100,17 @@ const getStories = async (req, res) => {
             }
         }
 
+        if (sort === 'popular') {
+            orderBy = [
+                {
+                    viewsCount: 'desc',
+                },
+                {
+                    publishedAt: 'desc',
+                },
+            ]
+        }
+
         const [stories, total] = await Promise.all([
             prisma.story.findMany({
                 where,
@@ -172,6 +183,53 @@ const getStoryById = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             message: 'Помилка отримання історії',
+            error: error.message,
+        })
+    }
+}
+
+const incrementStoryView = async (req, res) => {
+    try {
+        const { id } = req.params
+
+        const story = await prisma.story.findFirst({
+            where: {
+                id,
+                status: 'APPROVED',
+            },
+            select: {
+                id: true,
+            },
+        })
+
+        if (!story) {
+            return res.status(404).json({
+                message: 'Історію не знайдено',
+            })
+        }
+
+        const updatedStory = await prisma.story.update({
+            where: {
+                id,
+            },
+            data: {
+                viewsCount: {
+                    increment: 1,
+                },
+            },
+            select: {
+                id: true,
+                viewsCount: true,
+            },
+        })
+
+        return res.json({
+            message: 'Перегляд зараховано',
+            viewsCount: updatedStory.viewsCount,
+        })
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Помилка оновлення кількості переглядів',
             error: error.message,
         })
     }
@@ -520,6 +578,7 @@ const deleteStory = async (req, res) => {
 module.exports = {
     getStories,
     getStoryById,
+    incrementStoryView,
     getMyStories,
     getMyStoryById,
     createStory,
