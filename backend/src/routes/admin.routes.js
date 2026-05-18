@@ -16,6 +16,12 @@ const {
 } = require('../controllers/admin.controller')
 
 const {
+    getAdminReports,
+    markReportReviewed,
+    rejectReport,
+} = require('../controllers/report.controller')
+
+const {
     authMiddleware,
     adminMiddleware,
 } = require('../middlewares/auth.middleware')
@@ -26,6 +32,10 @@ router.use(authMiddleware)
 router.use(adminMiddleware)
 
 router.get('/statistics', getStatistics)
+
+router.get('/reports', getAdminReports)
+router.patch('/reports/:id/review', markReportReviewed)
+router.patch('/reports/:id/reject', rejectReport)
 
 router.get('/stories', getAdminStories)
 router.get('/stories/pending', getPendingStories)

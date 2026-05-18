@@ -7,6 +7,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum ReportStatus {
+  NEW
+  REVIEWED
+  REJECTED
+}
+
 enum UserRole {
   USER
   ADMIN
@@ -41,6 +47,7 @@ model User {
 
   stories          Story[]
   moderationLogs   ModerationLog[]
+  reports StoryReport[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -81,6 +88,7 @@ model Story {
   images StoryImage[]
   audio  StoryAudio?
   moderationLogs ModerationLog[]
+  reports StoryReport[]
 
   publishedAt DateTime?
   createdAt   DateTime @default(now())
@@ -128,4 +136,23 @@ model ModerationLog {
   createdAt DateTime @default(now())
 
   @@map("moderation_logs")
+}
+
+model StoryReport {
+  id       String       @id @default(uuid())
+  reason   String
+  comment  String?
+  status   ReportStatus @default(NEW)
+
+  storyId    String
+  reporterId String
+
+  story    Story @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  reporter User  @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([storyId, reporterId])
+  @@map("story_reports")
 }

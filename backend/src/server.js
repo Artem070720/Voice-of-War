@@ -8,6 +8,8 @@ const authRoutes = require('./routes/auth.routes')
 const categoryRoutes = require('./routes/category.routes')
 const storyRoutes = require('./routes/story.routes')
 const adminRoutes = require('./routes/admin.routes')
+const publicRoutes = require('./routes/public.routes')
+const profileRoutes = require('./routes/profile.routes')
 
 const app = express()
 
@@ -21,7 +23,9 @@ app.use(express.urlencoded({ extended: true }))
 
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')))
 
+app.use('/api/public', publicRoutes)
 app.use('/api/auth', authRoutes)
+app.use('/api/profile', profileRoutes)
 app.use('/api/categories', categoryRoutes)
 app.use('/api/stories', storyRoutes)
 app.use('/api/admin', adminRoutes)

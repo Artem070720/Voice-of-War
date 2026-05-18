@@ -10,6 +10,8 @@ const {
     deleteStory,
 } = require('../controllers/story.controller')
 
+const { createStoryReport } = require('../controllers/report.controller')
+
 const { authMiddleware } = require('../middlewares/auth.middleware')
 const { uploadStoryFiles } = require('../middlewares/upload.middleware')
 
@@ -23,6 +25,8 @@ router.get('/my/:id', authMiddleware, getMyStoryById)
 router.get('/:id', getStoryById)
 
 router.post('/', authMiddleware, uploadStoryFiles, createStory)
+router.post('/:id/report', authMiddleware, createStoryReport)
+
 router.patch('/:id', authMiddleware, uploadStoryFiles, updateStory)
 router.delete('/:id', authMiddleware, deleteStory)
 
