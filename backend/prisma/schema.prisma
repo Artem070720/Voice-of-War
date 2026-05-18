@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+}
+
+enum StoryStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  HIDDEN
+}
+
+enum ModerationAction {
+  APPROVE
+  REJECT
+  HIDE
+  DELETE
+}
+
+model User {
+  id        String     @id @default(uuid())
+  name      String
+  email     String     @unique
+  password  String
+  role      UserRole   @default(USER)
+  status    UserStatus @default(ACTIVE)
+
+  stories          Story[]
+  moderationLogs   ModerationLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Category {
+  id          String  @id @default(uuid())
+  name        String  @unique
+  description String?
+
+  stories Story[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("categories")
+}
+
+model Story {
+  id              String      @id @default(uuid())
+  title           String
+  content         String
+  region          String
+  city            String?
+  eventDate       DateTime?
+  isAnonymous     Boolean     @default(false)
+  status          StoryStatus @default(PENDING)
+  rejectionReason String?
+
+  authorId   String
+  categoryId String
+
+  author   User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id])
+
+  images StoryImage[]
+  audio  StoryAudio?
+  moderationLogs ModerationLog[]
+
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("stories")
+}
+
+model StoryImage {
+  id       String @id @default(uuid())
+  imageUrl String
+
+  storyId String
+  story   Story  @relation(fields: [storyId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@map("story_images")
+}
+
+model StoryAudio {
+  id       String  @id @default(uuid())
+  audioUrl String
+  duration Int?
+
+  storyId String @unique
+  story   Story  @relation(fields: [storyId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@map("story_audio")
+}
+
+model ModerationLog {
+  id      String           @id @default(uuid())
+  action  ModerationAction
+  comment String?
+
+  storyId String
+  adminId String
+
+  story Story @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  admin User  @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@map("moderation_logs")
+}
