@@ -48,6 +48,8 @@ model User {
   stories          Story[]
   moderationLogs   ModerationLog[]
   reports StoryReport[]
+  comments StoryComment[]
+  favorites StoryFavorite[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -90,6 +92,8 @@ model Story {
   audio  StoryAudio?
   moderationLogs ModerationLog[]
   reports StoryReport[]
+  comments StoryComment[]
+  favorites StoryFavorite[]
 
   publishedAt DateTime?
   createdAt   DateTime @default(now())
@@ -156,4 +160,35 @@ model StoryReport {
 
   @@unique([storyId, reporterId])
   @@map("story_reports")
+}
+
+model StoryComment {
+  id      String @id @default(uuid())
+  content String
+
+  storyId  String
+  authorId String
+
+  story  Story @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  author User  @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("story_comments")
+}
+
+model StoryFavorite {
+  id String @id @default(uuid())
+
+  storyId String
+  userId  String
+
+  story Story @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([storyId, userId])
+  @@map("story_favorites")
 }
