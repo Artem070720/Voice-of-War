@@ -235,6 +235,110 @@ const incrementStoryView = async (req, res) => {
     }
 }
 
+const getRelatedStories = async (req, res) => {
+    try {
+        const { id } = req.params
+
+        const story = await prisma.story.findFirst({
+            where: {
+                id,
+                status: 'APPROVED',
+            },
+            select: {
+                id: true,
+                categoryId: true,
+                region: true,
+            },
+        })
+
+        if (!story) {
+            return res.status(404).json({
+                message: 'Історію не знайдено',
+            })
+        }
+
+        const byCategory = await prisma.story.findMany({
+            where: {
+                id: {
+                    not: id,
+                },
+                status: 'APPROVED',
+                categoryId: story.categoryId,
+            },
+            take: 3,
+            orderBy: [
+                {
+                    viewsCount: 'desc',
+                },
+                {
+                    publishedAt: 'desc',
+                },
+            ],
+            include: {
+                category: true,
+                author: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                },
+                images: true,
+                audio: true,
+            },
+        })
+
+        let relatedStories = byCategory
+
+        if (relatedStories.length < 3) {
+            const existingIds = relatedStories.map((item) => item.id)
+
+            const byRegion = await prisma.story.findMany({
+                where: {
+                    id: {
+                        notIn: [id, ...existingIds],
+                    },
+                    status: 'APPROVED',
+                    region: {
+                        equals: story.region,
+                        mode: 'insensitive',
+                    },
+                },
+                take: 3 - relatedStories.length,
+                orderBy: [
+                    {
+                        viewsCount: 'desc',
+                    },
+                    {
+                        publishedAt: 'desc',
+                    },
+                ],
+                include: {
+                    category: true,
+                    author: {
+                        select: {
+                            id: true,
+                            name: true,
+                        },
+                    },
+                    images: true,
+                    audio: true,
+                },
+            })
+
+            relatedStories = [...relatedStories, ...byRegion]
+        }
+
+        return res.json({
+            stories: relatedStories.map(formatStory),
+        })
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Помилка отримання схожих історій',
+            error: error.message,
+        })
+    }
+}
+
 const getMyStories = async (req, res) => {
     try {
         const stories = await prisma.story.findMany({
@@ -581,6 +685,7 @@ module.exports = {
     incrementStoryView,
     getMyStories,
     getMyStoryById,
+    getRelatedStories,
     createStory,
     updateStory,
     deleteStory,

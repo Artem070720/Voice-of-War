@@ -6,6 +6,7 @@ const {
     incrementStoryView,
     getMyStories,
     getMyStoryById,
+    getRelatedStories,
     createStory,
     updateStory,
     deleteStory,
@@ -46,6 +47,7 @@ router.get('/:id/favorite', authMiddleware, getFavoriteStatus)
 router.post('/:id/favorite', authMiddleware, addStoryToFavorites)
 router.delete('/:id/favorite', authMiddleware, removeStoryFromFavorites)
 
+router.get('/:id/related', getRelatedStories)
 router.get('/:id', getStoryById)
 
 router.post('/', authMiddleware, uploadStoryFiles, createStory)
